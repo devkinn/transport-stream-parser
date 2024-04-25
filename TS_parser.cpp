@@ -13,7 +13,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
   xTS_PacketHeader TS_PacketHeader;
   xTS_AdaptationField TS_PacketAdaptationField;
-  xPES_Assembler PES_Assembler;
+  // xPES_Assembler PES_Assembler;
 
   uint8_t TS_PacketBuffer[xTS::TS_PacketLength];
 
@@ -38,7 +38,7 @@ int main(int argc, char *argv[], char *envp[]) {
       TS_PacketHeader.Print();
       if (TS_PacketHeader.hasAdaptationField()) TS_PacketAdaptationField.Print();
 
-      xPES_Assembler::eResult Result = PES_Assembler.AbsorbPacket(TS_PacketBuffer, &TS_PacketHeader, &TS_PacketAdaptationField);
+      /*xPES_Assembler::eResult Result = PES_Assembler.AbsorbPacket(TS_PacketBuffer, &TS_PacketHeader, &TS_PacketAdaptationField);
       switch (Result) {
         case xPES_Assembler::eResult::StreamPackedLost:
           printf("PcktLost ");
@@ -57,6 +57,7 @@ int main(int argc, char *argv[], char *envp[]) {
         default:
           break;
       }
+      */
     }
 
     printf("\n");
