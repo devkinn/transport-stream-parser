@@ -1,6 +1,7 @@
 #pragma once
-#include "tsCommon.h"
 #include <string>
+
+#include "tsCommon.h"
 
 /*
 MPEG-TS packet:
@@ -34,38 +35,35 @@ Continuity counter           (CC ) :  4 bits
 
 //=============================================================================================================================================================================
 
-class xTS
-{
-public:
+class xTS {
+ public:
   static constexpr uint32_t TS_PacketLength = 188;
   static constexpr uint32_t TS_HeaderLength = 4;
 
   static constexpr uint32_t PES_HeaderLength = 6;
 
-  static constexpr uint32_t BaseClockFrequency_Hz = 90000;        // Hz
-  static constexpr uint32_t ExtendedClockFrequency_Hz = 27000000; // Hz
-  static constexpr uint32_t BaseClockFrequency_kHz = 90;          // kHz
-  static constexpr uint32_t ExtendedClockFrequency_kHz = 27000;   // kHz
+  static constexpr uint32_t BaseClockFrequency_Hz = 90000;         // Hz
+  static constexpr uint32_t ExtendedClockFrequency_Hz = 27000000;  // Hz
+  static constexpr uint32_t BaseClockFrequency_kHz = 90;           // kHz
+  static constexpr uint32_t ExtendedClockFrequency_kHz = 27000;    // kHz
   static constexpr uint32_t BaseToExtendedClockMultiplier = 300;
 };
 
 //=============================================================================================================================================================================
 
-class xTS_PacketHeader
-{
-public:
-  enum class ePID : uint16_t
-  {
+class xTS_PacketHeader {
+ public:
+  enum class ePID : uint16_t {
     PAT = 0x0000,
     CAT = 0x0001,
     TSDT = 0x0002,
     IPMT = 0x0003,
-    NIT = 0x0010, // DVB specific PID
-    SDT = 0x0011, // DVB specific PID
+    NIT = 0x0010,  // DVB specific PID
+    SDT = 0x0011,  // DVB specific PID
     NuLL = 0x1FFF,
   };
 
-protected:
+ protected:
   uint8_t m_SB;
   uint8_t m_E;
   uint8_t m_S;
@@ -75,12 +73,12 @@ protected:
   uint8_t m_AFC;
   uint8_t m_CC;
 
-public:
+ public:
   void Reset();
-  int32_t Parse(const uint8_t *Input);
+  int32_t Parse(const uint8_t* Input);
   void Print() const;
 
-public:
+ public:
   uint8_t getSyncByte() const { return m_SB; }
   uint8_t getTransportErrorInd() const { return m_E; }
   uint8_t getPayloadUnitStartInd() const { return m_S; }
@@ -90,16 +88,21 @@ public:
   uint8_t getAdaptationFieldControl() const { return m_AFC; }
   uint8_t getContinuityCounter() const { return m_CC; }
 
-public:
-  bool hasAdaptationField() const { if (m_AFC == 2 || m_AFC == 3) return true; return false; }
-  // bool     hasPayload        () const { /*TODO*/ }
+ public:
+  bool hasAdaptationField() const {
+    if (m_AFC == 2 || m_AFC == 3) return true;
+    return false;
+  }
+  bool hasPayload() const {
+    if (m_AFC == 1 || m_AFC == 3) return true;
+    return false;
+  }
 };
 
 //=============================================================================================================================================================================
 
-class xTS_AdaptationField
-{
-protected:
+class xTS_AdaptationField {
+ protected:
   // setup
   uint8_t m_AdaptationFieldControl;
   // mandatory fields
@@ -112,18 +115,18 @@ protected:
   uint8_t m_SF;
   uint8_t m_TP;
   uint8_t m_EX;
-  
+
   // optional fields - PCR
-public:
+ public:
   void Reset();
-  int32_t Parse(const uint8_t *PacketBuffer, uint8_t AdaptationFieldControl);
+  int32_t Parse(const uint8_t* PacketBuffer, uint8_t AdaptationFieldControl);
   void Print() const;
 
-public:
+ public:
   // mandatory fields
   uint8_t getAdaptationFieldLength() const { return m_AdaptationFieldLength; }
   // derived values
-  // uint32_t getNumBytes () const { }
+  uint32_t getNumBytes() const { return m_AdaptationFieldLength + 1; }
 };
 
 //=============================================================================================================================================================================
@@ -149,7 +152,7 @@ class xPES_PacketHeader {
 
  public:
   void Reset();
-  int32_t Parse(const uint8_t *Input);
+  int32_t Parse(const uint8_t* Input);
   void Print() const;
 
  public:
@@ -184,8 +187,8 @@ class xPES_Assembler {
   xPES_PacketHeader m_PESH;
 
  public:
-  xPES_Assembler();
-  ~xPES_Assembler();
+  // xPES_Assembler();
+  //~xPES_Assembler();
   void Init(int32_t PID);
   eResult AbsorbPacket(const uint8_t* TransportStreamPacket, const xTS_PacketHeader* PacketHeader, const xTS_AdaptationField* AdaptationField);
   void PrintPESH() const { m_PESH.Print(); }

@@ -13,7 +13,7 @@ int main(int argc, char *argv[], char *envp[]) {
 
   xTS_PacketHeader TS_PacketHeader;
   xTS_AdaptationField TS_PacketAdaptationField;
-  // xPES_Assembler PES_Assembler;
+  xPES_Assembler PES_Assembler;
 
   uint8_t TS_PacketBuffer[xTS::TS_PacketLength];
 
@@ -22,7 +22,9 @@ int main(int argc, char *argv[], char *envp[]) {
     if (TS_PacketId == 30)
       break;
 
-    std::fread(TS_PacketBuffer, sizeof(uint8_t), xTS::TS_PacketLength, TransportStreamFile);
+    size_t NumRead = std::fread(TS_PacketBuffer, 1, xTS::TS_PacketLength, TransportStreamFile);
+    if (NumRead != xTS::TS_PacketLength)
+      break;
 
     TS_PacketHeader.Reset();
     TS_PacketHeader.Parse(TS_PacketBuffer);
@@ -38,7 +40,7 @@ int main(int argc, char *argv[], char *envp[]) {
       TS_PacketHeader.Print();
       if (TS_PacketHeader.hasAdaptationField()) TS_PacketAdaptationField.Print();
 
-      /*xPES_Assembler::eResult Result = PES_Assembler.AbsorbPacket(TS_PacketBuffer, &TS_PacketHeader, &TS_PacketAdaptationField);
+      xPES_Assembler::eResult Result = PES_Assembler.AbsorbPacket(TS_PacketBuffer, &TS_PacketHeader, &TS_PacketAdaptationField);
       switch (Result) {
         case xPES_Assembler::eResult::StreamPackedLost:
           printf("PcktLost ");
@@ -57,7 +59,6 @@ int main(int argc, char *argv[], char *envp[]) {
         default:
           break;
       }
-      */
     }
 
     printf("\n");
