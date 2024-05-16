@@ -1,3 +1,4 @@
 /build*
 ./build*
 *.ts
+*.mp2
