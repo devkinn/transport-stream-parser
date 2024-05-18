@@ -145,32 +145,38 @@ xPES_Assembler::eResult xPES_Assembler::AbsorbPacket(const uint8_t *TransportStr
 	{
 		m_Started = true;
 		m_PESH.Reset();
+		xBufferReset();
+
 		uint32_t pes_header_length = m_PESH.Parse(pes_pointer);
+		uint32_t pes_data_length = payload_length - pes_header_length;
+		xBufferAppend(pes_pointer + pes_header_length, pes_data_length);
 		m_DataOffset = payload_length;
-		payload_length -= pes_header_length;
+
 		m_LastContinuityCounter = PacketHeader->getContinuityCounter();
-		xBufferAppend(pes_pointer + pes_header_length, payload_length);
 		return eResult::AssemblingStarted;
 	}
 
+	if ((1 + m_LastContinuityCounter) != PacketHeader->getContinuityCounter())
+	{
+		m_Started = false;
+		xBufferReset();
+		return eResult::StreamPackedLost;
+	}
+
+	if (!m_Started)
+		return eResult::StreamPackedLost;
+
+	xBufferAppend(pes_pointer, payload_length);
 	m_DataOffset += payload_length;
+	m_LastContinuityCounter = (PacketHeader->getContinuityCounter() == 15) ? -1 : PacketHeader->getContinuityCounter();
+
 	if (m_DataOffset >= m_PESH.getPacketLength())
 	{
-		xBufferAppend(pes_pointer, payload_length);
 		std::fwrite(m_Buffer, sizeof(uint8_t), m_BufferSize, m_OutputFile);
 		xBufferReset();
 		return eResult::AssemblingFinished;
 	}
 
-	if ((1 + m_LastContinuityCounter) != PacketHeader->getContinuityCounter())
-	{
-		xBufferReset();
-		return eResult::StreamPackedLost;
-	}
-
-	xBufferAppend(pes_pointer, payload_length);
-	m_DataOffset += payload_length;
-	m_LastContinuityCounter = PacketHeader->getContinuityCounter();
 	return eResult::AssemblingContinue;
 }
 
