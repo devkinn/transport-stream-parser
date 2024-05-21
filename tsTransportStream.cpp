@@ -133,13 +133,13 @@ void xPES_Assembler::Init(int32_t PID)
 
 xPES_Assembler::eResult xPES_Assembler::AbsorbPacket(const uint8_t *TransportStreamPacket, const xTS_PacketHeader *PacketHeader, const xTS_AdaptationField *AdaptationField)
 {
-	uint32_t payload_length = xTS::TS_PacketLength - xTS::TS_HeaderLength;
+	uint32_t payloadLength = xTS::TS_PacketLength - xTS::TS_HeaderLength;
 	if (PacketHeader->hasAdaptationField())
 	{
-		payload_length -= AdaptationField->getNumBytes();
+		payloadLength -= AdaptationField->getNumBytes();
 	}
 
-	const uint8_t *pes_pointer = TransportStreamPacket + (xTS::TS_PacketLength - payload_length);
+	const uint8_t *pesPointer = TransportStreamPacket + (xTS::TS_PacketLength - payloadLength);
 
 	if (PacketHeader->getPayloadUnitStartInd() == 1)
 	{
@@ -147,10 +147,10 @@ xPES_Assembler::eResult xPES_Assembler::AbsorbPacket(const uint8_t *TransportStr
 		m_PESH.Reset();
 		xBufferReset();
 
-		uint32_t pes_header_length = m_PESH.Parse(pes_pointer);
-		uint32_t pes_data_length = payload_length - pes_header_length;
-		xBufferAppend(pes_pointer + pes_header_length, pes_data_length);
-		m_DataOffset = payload_length;
+		uint32_t pesHeaderLength = m_PESH.Parse(pesPointer);
+		uint32_t pesDataLength = payloadLength - pesHeaderLength;
+		xBufferAppend(pesPointer + pesHeaderLength, pesDataLength);
+		m_DataOffset = payloadLength;
 
 		m_LastContinuityCounter = PacketHeader->getContinuityCounter();
 		return eResult::AssemblingStarted;
@@ -166,8 +166,8 @@ xPES_Assembler::eResult xPES_Assembler::AbsorbPacket(const uint8_t *TransportStr
 	if (!m_Started)
 		return eResult::StreamPackedLost;
 
-	xBufferAppend(pes_pointer, payload_length);
-	m_DataOffset += payload_length;
+	xBufferAppend(pesPointer, payloadLength);
+	m_DataOffset += payloadLength;
 	m_LastContinuityCounter = (PacketHeader->getContinuityCounter() == 15) ? -1 : PacketHeader->getContinuityCounter();
 
 	if (m_DataOffset >= m_PESH.getPacketLength())
@@ -209,8 +209,8 @@ int32_t xPES_PacketHeader::Parse(const uint8_t *Input)
 
 	if (m_StreamId != eStreamId::eStreamId_program_stream_map && m_StreamId != eStreamId::eStreamId_padding_stream && m_StreamId != eStreamId::eStreamId_private_stream_2 && m_StreamId != eStreamId::eStreamId_ECM && m_StreamId != eStreamId::eStreamId_EMM && m_StreamId != eStreamId::eStreamId_program_stream_directory && m_StreamId != eStreamId::eStreamId_DSMCC_stream && m_StreamId != eStreamId::eStreamId_ITUT_H222_1_type_E)
 	{
-		uint8_t extensionData = *(Input + 8);
-		return 9 + extensionData;
+		uint8_t pesHeaderLength = *(Input + 8);
+		return 9 + pesHeaderLength;
 	}
 	return 6;
 }

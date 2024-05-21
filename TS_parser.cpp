@@ -67,7 +67,7 @@ int main(int argc, char *argv[], char *envp[])
 				printf("\n%10s ", " ");
 				printf("Assembling Finished");
 				printf("\n%10s ", " ");
-				printf("PES: Len=%d", PES_Assembler.getNumPacketBytes());
+				printf("PES: PcktLen=%d", PES_Assembler.getNumPacketBytes());
 				break;
 			default:
 				break;
